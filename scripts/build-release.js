@@ -10,6 +10,7 @@ const sharedBuildStatePath = path.join(rootDir, "build-state.json");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 const packageVersion = packageJson.version;
 const platformKey = process.platform === "darwin" ? "macos" : process.platform === "win32" ? "windows" : process.platform;
+const shouldPublishBuildState = process.argv.includes("--publish-build-state");
 
 function readReleaseState() {
   try {
@@ -60,6 +61,19 @@ function getGitMetadata() {
       head: "unknown",
       commitMessage: "No git metadata available"
     };
+  }
+}
+
+function getCurrentBranch() {
+  try {
+    return execSync("git branch --show-current", {
+      cwd: rootDir,
+      stdio: ["ignore", "pipe", "ignore"]
+    })
+      .toString("utf8")
+      .trim();
+  } catch (_error) {
+    return "unknown";
   }
 }
 
@@ -119,11 +133,11 @@ function askVersion(defaultVersion) {
   });
 }
 
-function runCommand(command, args) {
+function runCommand(command, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: rootDir,
-      stdio: "inherit",
+      stdio: options.stdio || "inherit",
       shell: process.platform === "win32"
     });
 
@@ -138,6 +152,36 @@ function runCommand(command, args) {
 
     child.on("error", reject);
   });
+}
+
+async function publishBuildState(version) {
+  const branch = getCurrentBranch();
+  const commitMessage = `chore(release): record ${platformKey} build ${version}`;
+
+  console.log(`\nPublishing build record on branch: ${branch}`);
+
+  await runCommand("git", ["add", "build-state.json"]);
+
+  try {
+    await runCommand("git", ["commit", "-m", commitMessage]);
+  } catch (error) {
+    const statusOutput = execSync("git status --short build-state.json", {
+      cwd: rootDir,
+      stdio: ["ignore", "pipe", "ignore"]
+    })
+      .toString("utf8")
+      .trim();
+
+    if (!statusOutput) {
+      console.log("No tracked build-state changes to commit.");
+      return;
+    }
+
+    throw error;
+  }
+
+  await runCommand("git", ["push", "origin", branch]);
+  console.log(`Published build-state.json to origin/${branch}`);
 }
 
 async function main() {
@@ -178,6 +222,10 @@ async function main() {
     `\nSaved release state: ${nextState.version} (${nextState.gitHead}) ${nextState.commitMessage}`
   );
   console.log(`Updated tracked build state for ${platformKey}`);
+
+  if (shouldPublishBuildState) {
+    await publishBuildState(version);
+  }
 }
 
 main().catch((error) => {

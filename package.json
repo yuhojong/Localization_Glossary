@@ -13,6 +13,7 @@
     "build": "npm run build:renderer && electron-builder",
     "build:package": "electron-builder",
     "release": "node scripts/build-release.js",
+    "release:publish": "node scripts/build-release.js --publish-build-state",
     "start": "electron ."
   },
   "dependencies": {
