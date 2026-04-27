@@ -1,9 +1,9 @@
 {
   "macos": null,
   "windows": {
-    "version": "0.1.1",
-    "gitHead": "0c44ccd",
-    "commitMessage": "Add release publish flow",
-    "builtAt": "2026-04-27T06:57:53.459Z"
+    "version": "0.1.1+icondata",
+    "gitHead": "4c5ac80",
+    "commitMessage": "Windows build 0.1.1",
+    "builtAt": "2026-04-27T07:37:40.254Z"
   }
 }
