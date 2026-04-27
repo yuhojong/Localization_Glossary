@@ -78,7 +78,10 @@ app.on("window-all-closed", () => {
 });
 
 ipcMain.handle("glossary:get-status", async () => {
-  return store.getStatus();
+  return {
+    ...store.getStatus(),
+    appVersion: app.getVersion()
+  };
 });
 
 ipcMain.handle("glossary:search", async (_event, query, options) => {
@@ -87,7 +90,10 @@ ipcMain.handle("glossary:search", async (_event, query, options) => {
 
 ipcMain.handle("glossary:reindex", async () => {
   await store.reindex();
-  return store.getStatus();
+  return {
+    ...store.getStatus(),
+    appVersion: app.getVersion()
+  };
 });
 
 ipcMain.handle("glossary:select-directory", async () => {
@@ -96,10 +102,16 @@ ipcMain.handle("glossary:select-directory", async () => {
   });
 
   if (result.canceled || result.filePaths.length === 0) {
-    return store.getStatus();
+    return {
+      ...store.getStatus(),
+      appVersion: app.getVersion()
+    };
   }
 
   store.setDataDir(result.filePaths[0]);
   await store.reindex();
-  return store.getStatus();
+  return {
+    ...store.getStatus(),
+    appVersion: app.getVersion()
+  };
 });

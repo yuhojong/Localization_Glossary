@@ -7,6 +7,7 @@ const DEFAULT_STATUS: GlossaryStatus = {
   koResultCount: 0,
   enResultCount: 0,
   fileCount: 0,
+  appVersion: "",
   lastIndexedAt: null,
   lastError: null
 };
@@ -89,6 +90,9 @@ function App() {
           <p className="eyebrow">StudioNavi Glossary Search</p>
           <h1>Navi Localization Glossary</h1>
           <p className="local-name">스튜디오나비 글로서리</p>
+          <p className="version-text">
+            Version {status.appVersion || "-"}
+          </p>
         </div>
         <div className="actions">
           <button onClick={handlePickDirectory} disabled={busy}>

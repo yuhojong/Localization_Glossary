@@ -71,6 +71,13 @@ button {
   font-size: 15px;
 }
 
+.version-text {
+  margin: 6px 0 0;
+  color: #8b6845;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
 .eyebrow {
   margin: 0;
   color: #8b6845;

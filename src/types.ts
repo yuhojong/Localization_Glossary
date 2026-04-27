@@ -33,6 +33,7 @@ export type GlossaryStatus = {
   koResultCount: number;
   enResultCount: number;
   fileCount: number;
+  appVersion: string;
   lastIndexedAt: string | null;
   lastError: string | null;
 };
