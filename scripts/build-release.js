@@ -6,8 +6,10 @@ const { execSync, spawn } = require("child_process");
 const rootDir = path.join(__dirname, "..");
 const packageJsonPath = path.join(__dirname, "..", "package.json");
 const releaseStatePath = path.join(rootDir, ".release-state.json");
+const sharedBuildStatePath = path.join(rootDir, "build-state.json");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 const packageVersion = packageJson.version;
+const platformKey = process.platform === "darwin" ? "macos" : process.platform === "win32" ? "windows" : process.platform;
 
 function readReleaseState() {
   try {
@@ -19,6 +21,18 @@ function readReleaseState() {
 
 function writeReleaseState(state) {
   fs.writeFileSync(releaseStatePath, JSON.stringify(state, null, 2) + "\n", "utf8");
+}
+
+function readSharedBuildState() {
+  try {
+    return JSON.parse(fs.readFileSync(sharedBuildStatePath, "utf8"));
+  } catch (_error) {
+    return {};
+  }
+}
+
+function writeSharedBuildState(state) {
+  fs.writeFileSync(sharedBuildStatePath, JSON.stringify(state, null, 2) + "\n", "utf8");
 }
 
 function getGitMetadata() {
@@ -49,18 +63,37 @@ function getGitMetadata() {
   }
 }
 
-function printBuildContext(lastBuild) {
+function formatBuildLine(label, build) {
+  if (!build) {
+    return `${label}: none`;
+  }
+
+  return `${label}: ${build.version} (${build.gitHead}) ${build.commitMessage}`;
+}
+
+function printBuildContext(lastBuild, sharedBuild) {
   console.log(`Package version: ${packageVersion}`);
+  console.log(`Current OS: ${platformKey}`);
+  console.log(formatBuildLine("Local last build", lastBuild));
+  console.log(formatBuildLine(`Tracked ${platformKey} build`, sharedBuild));
 
   if (!lastBuild) {
-    console.log("Last build: none\n");
+    if (sharedBuild?.builtAt) {
+      console.log(`Tracked built at: ${sharedBuild.builtAt}\n`);
+      return;
+    }
+
+    console.log("");
     return;
   }
 
-  console.log(
-    `Last build: ${lastBuild.version} (${lastBuild.gitHead}) ${lastBuild.commitMessage}`
-  );
-  console.log(`Last built at: ${lastBuild.builtAt}\n`);
+  console.log(`Local built at: ${lastBuild.builtAt}`);
+
+  if (sharedBuild?.builtAt) {
+    console.log(`Tracked built at: ${sharedBuild.builtAt}`);
+  }
+
+  console.log("");
 }
 
 function isValidVersion(value) {
@@ -109,8 +142,10 @@ function runCommand(command, args) {
 
 async function main() {
   const lastBuild = readReleaseState();
+  const sharedState = readSharedBuildState();
+  const sharedBuild = sharedState[platformKey] || null;
   const defaultVersion = lastBuild?.version || packageVersion;
-  printBuildContext(lastBuild);
+  printBuildContext(lastBuild, sharedBuild);
 
   const version = await askVersion(defaultVersion);
 
@@ -134,10 +169,15 @@ async function main() {
     builtAt: new Date().toISOString()
   };
   writeReleaseState(nextState);
+  writeSharedBuildState({
+    ...sharedState,
+    [platformKey]: nextState
+  });
 
   console.log(
     `\nSaved release state: ${nextState.version} (${nextState.gitHead}) ${nextState.commitMessage}`
   );
+  console.log(`Updated tracked build state for ${platformKey}`);
 }
 
 main().catch((error) => {
