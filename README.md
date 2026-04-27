@@ -1,6 +1,6 @@
 # Navi Localization Glossary
 
-스튜디오나비 글로서리를 검색하는 스탠드얼론 데스크톱 앱 초안이다.
+글로서리를 검색하는 스탠드얼론 데스크톱 앱 초안이다.
 
 ## Current Stack
 
