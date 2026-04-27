@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+
+# Local packaging artifacts
+*.zip
+
+# macOS
+.DS_Store
+
+# Runtime glossary data
+data/*.xlsx
+!data/.gitkeep
+
+# App icons and generated icon assets
+build/icon.png
+build/icon.ico
+build/icon.icns
+build/icon.iconset/
+!build/.gitkeep
