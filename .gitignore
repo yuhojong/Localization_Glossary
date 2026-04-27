@@ -6,6 +6,7 @@ dist/
 
 # Local packaging artifacts
 *.zip
+.release-state.json
 
 # macOS
 .DS_Store
